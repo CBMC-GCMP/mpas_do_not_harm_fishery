@@ -10,7 +10,7 @@ The repository store code to support findings for a submitted manuscript titled 
 
 Raw data from the Mexican Vessel Monitoring system are available through the "[Datos Abiertos](https://datos.gob.mx/busca/dataset/localizacion-y-monitoreo-satelital-de-embarcaciones-pesqueras)" initiative and can be downloaded and wrangled using the `dafishr` package. Here, we provide a quick intro.
 
-### Step 1. Row data download
+### Step 1. Raw data download
 
 First there are some packages that needs to be installed:
 

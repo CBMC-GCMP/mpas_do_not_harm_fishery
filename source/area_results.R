@@ -1,31 +1,44 @@
-## This scripts shows how area used data are created from the preprocessed modelled files,
+## This script shows how area used data are created from the preprocessed modelled files,
 # all the intermediate data are available by the authors under reasonable request, or can be
 # reproduced independently following the README instruction at the main repository page. 
 
-library(tidyverse)
+
+# Loading libraries -------------------------------------------------------
 
 library(tidyverse)
-library(fst)
 library(dafishr)
 library(furrr)
+library(fst)
 
-sf::sf_use_s2(FALSE)
+## Load dataset
+load("outputs/month_vessel_hrs.RData")
+
+sf::sf_use_s2(FALSE) ## Setting spatial options
+
+## Loading an eastern pacific shapefile to filter out area use
 estpa <- sf::st_read("data/eastern_pacific.gpkg")
+
+## Shapefile of the Mexican EEZ
 EEZ <- dafishr::mx_eez_pacific
-Revimpa <- dafishr::all_mpas %>% 
+
+## Revillagigedo MPA polygon from the dafishr package
+Revimpa <- dafishr::all_mpas |> 
       filter(str_detect(NOMBRE, "Revillagigedo"))
 
+
+## Here I create a list of the data that were preprocessed and modeled according to instruction and stored in a data folder. 
 file_list <- list.files("data/", pattern = ".fst", full.names = T)
 
-permits <- readRDS("metadata/pelagic_vessels_permits.RDS") %>%  
-      mutate(str_split(vessel_name, "\\(")) %>%  
-      pull(vessel_name) %>% 
+
+permits <- dafishr::pelagic_vessels_permits |> 
+      mutate(str_split(vessel_name, "\\(")) |> 
+      pull(vessel_name) |> 
       unique()
 
-revi_list <- readRDS("outputs/montlhy_vessel_hrs.RDS") %>% 
-      filter(year > 2005) %>% 
-      filter(str_detect(zone, "Revillagigedo")) %>% 
-      pull(vessel_name) %>% 
+revi_list <- month_vessel_hrs |> 
+      filter(year > 2005) |> 
+      filter(str_detect(zone, "Revillagigedo")) |> 
+      pull(vessel_name) |> 
       unique()
 
 plan(multisession, gc = TRUE, workers = 10)
@@ -107,10 +120,10 @@ rasteringmonths <- function(x) {
 }
 
 
-areas <- future.apply::future_lapply(file_list[2:430], rasteringmonths)
+areas <- future.apply::future_lapply(file_list, rasteringmonths)
 beepr::beep()
 
-areas_results_revi <- do.call(rbind, areas)|> 
+areas_results_revi <- do.call(rbind, areas) |> 
       mutate(revi = "Yes")
 
 

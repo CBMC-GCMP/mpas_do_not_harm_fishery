@@ -2,15 +2,41 @@ Supplementary information for – The largest fully protected marine area
 in North America does not harm industrial fishing
 ================
 
-The repository store code to support findings for a submitted manuscript
-titled “The largest fully protected marine area in North America does
-not harm industrial fishing”. We provide here instruction to replicate
-the analysis over sample raw data and reproduce the results presented in
-the manuscript and in the supplementary materials. If reproducing the
-results using cleaned datasets is the main interest the first section
-can be skipped.
+This repository stores code to support findings for a submitted
+manuscript titled “The largest fully protected marine area in North
+America does not harm industrial fishing”. We provide here instruction
+to replicate the analysis over sample raw data and reproduce the results
+presented in the manuscript and in the supplementary materials.
 
-## Replicate the analysis
+This readme file is structured in two main chapters:
+
+1.  Replicate the data: explains how data pre-processing occurs and raw
+    data sources.
+
+2.  Reproduce the results: explains how manuscript analysis, results,
+    and figures are generated.
+
+If reproducing the results using cleaned datasets is the main interest,
+the first section can be skipped entirely.
+
+### dafishr package
+
+The `dafishr` package was created to download, wrangle, and analyse
+Mexican VMS data. We strongly encourage to read `dafishr` documentation
+as well as this document. Many function are from the package and should
+be installed as:
+
+``` r
+# install.packages("devtools")
+devtools::install_github("CBMC-GCMP/dafishr")
+```
+
+    Using github PAT from envvar GITHUB_PAT
+
+    Skipping install of 'dafishr' from a github remote, the SHA1 (646ae29b) has not changed since last install.
+      Use `force = TRUE` to force installation
+
+## Replicate the data
 
 Raw data from the Mexican Vessel Monitoring system are available through
 the “[Datos
@@ -18,7 +44,7 @@ Abiertos](https://datos.gob.mx/busca/dataset/localizacion-y-monitoreo-satelital-
 initiative and can be downloaded and wrangled using the `dafishr`
 package. Here, we provide a quick intro.
 
-### Step 1. Row data download
+### Step 1. Raw data download
 
 First there are some packages that needs to be installed:
 
@@ -30,6 +56,7 @@ library(ggplot2)
 library(future.apply)
 library(purrr)
 library(sf)
+library(stringr)
 library(CausalImpact)
 ```
 
@@ -88,6 +115,8 @@ The columns are:
 There are some evident parsing issues in speed and direction column, all
 these are considered and corrected in the pre-processing phase, as well
 as other errors.
+
+### Step 2: Preprocessing
 
 The pre-processing goes through a series of
 [steps](https://cbmc-gcmp.github.io/dafishr/articles/dafisr.html#downloading-raw-data-on-your-computer)
@@ -183,7 +212,7 @@ several other columns are added:
 We use this intersection to discriminate vessels that historically were
 fishing in Revillagigedo and vessels that did not.
 
-### Modeling VMS data
+### Step 3: Modeling VMS data
 
 Now that the preprocessing is over, we can model VMS data according to
 the speed to have a sense of where vessels were probably fishing.
@@ -215,7 +244,7 @@ vms_modeled  <- map_dfr(files_preprocessed,
 ```
 
 We can now create a plot of the results to see where the vessels were
-probably fishing.
+active.
 
 ``` r
 ## Plot to observe
@@ -231,9 +260,133 @@ vms_modeled |>
 
 ## Reproduce the results
 
-The road to raw data to processed files on all the historical data is
-long and we are available for questions and details on to further
-proceed if you want to fully reproduce all the details. Beware, however,
-that all significant steps are presented above and now we follow up on
-the final steps of the analysis and results production using
-intermediate datasets that we make available.
+The road from raw data to processed files of all the historical data is
+long and we are available for questions and details on how to fully
+reproduce all the details. Beware, however, that all significant steps
+are presented above and now we give all relevant information on data and
+analysis to properly assess caveats and limitations of the study.
+
+### Fishing activity inside Revillagigedo MPA Polygon
+
+Using monthly data that were modeled using the `dafishr` package as
+described above, we can now discriminate potential fishing activity
+inside MPA polygons and see how it changed over time.
+
+First however, we want to filter only the vessels that had a permit to
+fish Tuna, Sharks, and Marlins using longlines or purse seines. This
+results in a pelagic fleet, the one that might be mostly affected by the
+establishment of Revillagigedo MPA.
+
+We load the permit vessel list from the `dafishr` package, more
+description of the dataset is available
+[here](https://cbmc-gcmp.github.io/dafishr/reference/pelagiv_vessels_permits.html).
+
+``` r
+permits <- dafishr::pelagic_vessels_permits |> 
+      mutate(str_split(vessel_name, "\\(")) |> # some names adjustments 
+      pull(vessel_name) |> 
+      unique()
+```
+
+#### Fishing activity dataset
+
+In this repo we make available the results of the preprocessing and
+modeling of VMS dataset by the `dafishr` package.
+
+``` r
+glimpse(read_rds("outputs/month_vessel_hrs.RDS"))
+```
+
+    Rows: 259,310
+    Columns: 5
+    Groups: year, month, vessel_name [95,048]
+    $ year        <dbl> 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008, 2008…
+    $ month       <dbl> 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1…
+    $ vessel_name <chr> "A TODA MADRE", "ABEL NOE I", "ABELARDO", "ACAPULCO I", "A…
+    $ zone        <chr> "EEZ", "EEZ", "EEZ", "EEZ", "EEZ", "EEZ", "Pacífico Mexica…
+    $ hrs         <int> 316, 112, 95, 241, 73, 490, 1, 154, 83, 1, 1, 458, 369, 32…
+
+The dataset is structured by year, month, name of the vessel
+(`vessel_name`), the zone of activity and the duration of the potential
+fishing activity in hours (`hrs`).
+
+From this dataset we can create: 1) a `vessels_list` of all the vessels
+found active in our study area; and 2) a `revi_list` which is all the
+vessels that were found active in the Revillagigedo area. The latter was
+obtained by intersecting the VMS data modeled with the Mexican MPAs
+polygons (available in `dafishr::all_mpas`)
+
+Then, we create a vessels list and a list of all the vessels that were
+found to fish in Revillagigedo area.
+
+``` r
+vessels_list <- read_rds("outputs/month_vessel_hrs.RDS") %>% 
+      pull(vessel_name) %>% 
+      unique()
+
+revi_list <- read_rds("outputs/month_vessel_hrs.RDS") %>% 
+      filter(str_detect(zone, "Revillagigedo")) %>% 
+      pull(vessel_name) %>% 
+      unique()
+```
+
+We now create a `revispatial` object, by filtering the Revillagigedo
+zone, wrangling dates and calculating the effort by dividing the hours
+of activity by the number of vessels active.
+
+``` r
+revispatial <- readRDS("outputs/month_vessel_hrs.RDS") %>%  
+      filter(str_detect(zone, "Revillagigedo")) %>%  
+      group_by(year, month, vessel_name) %>% 
+      summarise(hrs = sum(hrs)) %>% 
+      group_by(year, month) %>%  
+      summarise(vessel = n_distinct(vessel_name), hrs = sum(hrs/24)) %>% 
+      mutate(effort = hrs/vessel, 
+             date = as.Date(paste0(year, "-", month, "-01"), "%Y-%m-%d"))
+```
+
+Finally, we can plot the results. This plot reproduces Figure 1A in the
+manuscript.
+
+``` r
+revispatial %>%
+      mutate(period = ifelse(date < "2017-11-01", "Before", "After")) |>
+      ggplot(aes(x = date, y = effort)) +
+      geom_point(
+            pch = 21,
+            fill = "gray80",
+            col = "black",
+            alpha = .4
+      ) +
+      labs(x = "",
+           y = "Average Fishing Effort",
+           title = "Fishing activity within MPA polygon") +
+      geom_hline(yintercept = 0) +
+      geom_vline(xintercept = as.Date("2017-11-01"),
+                 col = "red",
+                 size = 1) +
+      geom_line(aes(group = period)) +
+      geom_smooth(
+            aes(group = period),
+            method = "gam",
+            method.args = list(family = Gamma(link = "log")),
+            se = F
+      ) +
+      scale_color_manual(values = c("#FFC107", "#1E88E5")) +
+      scale_x_date(date_breaks = "1 year", date_labels = "%Y") +
+      theme(
+            legend.position = "",
+            legend.text = element_text(face = "bold"),
+            panel.background = element_rect(fill = NA),
+            plot.background = element_rect(fill = NA),
+            panel.grid.major = element_line(color = "gray95"),
+            text = element_text(color = "gray50"),
+            axis.text = element_text(color = "gray50"),
+            axis.title = element_text(color = "gray50"),
+            axis.text.x = element_text(angle = 90),
+            strip.background = element_blank(),
+            axis.line.y = element_line(color = "black")
+      )
+```
+
+![](README_files/figure-gfm/unnamed-chunk-13-1.png)

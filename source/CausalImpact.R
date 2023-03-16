@@ -67,13 +67,14 @@ impact <- CausalImpact(tomod, pre.period, post.period,
                        model.args = list(niter = 1000, nseasons = 30, season.duration = 2))
 
 (revilla_hrs <- plot(impact) +
-            labs(subtitle = "Fishing activity inside the Revillagigedo polygon", y = "") +
+            labs(subtitle = "Fishing activity inside the Revillagigedo polygon", y = "Fishing activity (Hrs / N)") +
             scale_x_date(breaks = "1 year", date_labels = "%Y") +
             theme(panel.grid = element_blank(), 
+                  axis.title.x = element_text(),
                   text = element_text(size=11),
                   strip.background = element_rect(color = NA, fill = NA)))
 
-
+ggsave("figs/Fishing_activity_inside_the_Revillagigedo_polygon.png", dpi = 800, width = 6, height = 6)
 summary(impact, "report")
 
 
@@ -124,14 +125,16 @@ impact <- CausalImpact(tomod, pre.period, post.period,
 
 (revilla <- plot(impact) +
             #scale_x_date(breaks = "1 year", date_labels = "%Y") +
-            labs(subtitle = "CPUE - Historically active in MPA polygon", y = "") +
+            labs(subtitle = "CPUE - Historically active in MPA polygon", y = "Average CPUE (Ton / day)") +
             scale_x_date(breaks = "1 year", date_labels = "%Y") +
             theme(panel.grid = element_blank(), 
+                  axis.title.x = element_text(),
                   text = element_text(size=11),
                   strip.background = element_rect(color = NA, fill = NA)))
 
 summary(impact, "report")
 
+ggsave("figs/CPUE_historically_active_in_MPA_polygon.png", dpi = 800, width = 6, height = 6)
 
 # CPUE Not Revillagigedo fleet (Figure 1B) ----------------------------------------------------------------
 
@@ -141,6 +144,7 @@ x <-landings|>
       mutate(vessel_name = str_trim(vessel_name))|>
       filter(vessel_name %in% permits)|> 
       mutate(revi = ifelse(vessel_name %in% revi_list, "Yes", "No"))|> 
+      filter(date >= "2008-01-01")|>
       mutate(year = lubridate::year(date), month = lubridate::month(date))|> 
       mutate(effort = catch/days_declared) |> 
       group_by(year, month, revi)|> 
@@ -179,11 +183,14 @@ impact <- CausalImpact(tomod, pre.period, post.period,
 
 (revilla <- plot(impact) +
             #scale_x_date(breaks = "1 year", date_labels = "%Y") +
-            labs(subtitle = "CPUE - Not historically active in MPA polygon", y = "") +
+            labs(subtitle = "CPUE - Not historically active in MPA polygon", y = "Average CPUE (Ton / day)") +
             scale_x_date(breaks = "1 year", date_labels = "%Y") +
             theme(panel.grid = element_blank(), 
+                  axis.title.x = element_text(),
                   text = element_text(size=11),
                   strip.background = element_rect(color = NA, fill = NA)))
+
+ggsave("figs/CPUE_not_historically_active_in_MPA_polygon.png", dpi = 800, width = 6, height = 6)
 
 
 summary(impact, "report")
@@ -225,13 +232,14 @@ impact <- CausalImpact(tomod, pre.period, post.period,
 
 (revilla <- plot(impact) +
             #scale_x_date(breaks = "1 year", date_labels = "%Y") +
-            labs(subtitle = "Area used by vessels historically in MPA polygon", y = "") +
+            labs(subtitle = "Area used by vessels historically in MPA polygon", y = bquote("Area used in thousands "(km ^ 2))) +
             scale_x_date(breaks = "1 year", date_labels = "%Y") +
             theme(panel.grid = element_blank(), 
                   text = element_text(size=11),
                   strip.background = element_rect(color = NA, fill = NA)))
 
 summary(impact, "report")
+ggsave("figs/Area used by vessels historically fishing in MPA polygon.png", dpi = 800, width = 6, height = 6)
 
 # Area used Figure 1C Not Revillagigedo fleet -------------------------------------------------------------------
 
@@ -269,7 +277,7 @@ impact <- CausalImpact(tomod, pre.period, post.period,
 
 (revilla <- plot(impact) +
             #scale_x_date(breaks = "1 year", date_labels = "%Y") +
-            labs(subtitle = "Area used by vessels that did not historically in MPA polygon", y = "") +
+            labs(subtitle = "Area used by vessels that did not fished historically in MPA polygon", y = bquote("Area used in thousands "(km ^ 2))) +
             scale_x_date(breaks = "1 year", date_labels = "%Y") +
             theme(panel.grid = element_blank(), 
                   text = element_text(size=11),
@@ -277,3 +285,4 @@ impact <- CausalImpact(tomod, pre.period, post.period,
 
 
 summary(impact, "report")
+ggsave("figs/Area used by vessels that did not historically in MPA polygon.png", dpi = 800, width = 6, height = 6)

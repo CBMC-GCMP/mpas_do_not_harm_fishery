@@ -23,8 +23,15 @@ the first section can be skipped entirely.
 
 The `dafishr` package was created to download, wrangle, and analyse
 Mexican VMS data. We strongly encourage to read `dafishr` documentation
-as well as this document. Many function are from the package and should
-be installed as:
+as well as this document. Many function are from the package and can be
+installed through CRAN with:
+
+``` r
+install.packages("dafishr")
+```
+
+In alternative, the development version can be installed using
+`devtools`:
 
 ``` r
 # install.packages("devtools")
@@ -384,7 +391,7 @@ revispatial  |>
       )
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-13-1.png)
+![](README_files/figure-commonmark/unnamed-chunk-14-1.png)
 
 ### Figure 1B: Catch per Unit of Efforts
 
@@ -464,7 +471,7 @@ landings_stats  |>
       )
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-15-1.png)
+![](README_files/figure-commonmark/unnamed-chunk-16-1.png)
 
 ### Figure 1C: Area used by the fleet
 
@@ -549,7 +556,7 @@ areas_results %>%
       )
 ```
 
-![](README_files/figure-commonmark/unnamed-chunk-17-1.png)
+![](README_files/figure-commonmark/unnamed-chunk-18-1.png)
 
 ### Figure 1D, E: Raster of before/after
 

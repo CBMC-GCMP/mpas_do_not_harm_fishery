@@ -16,7 +16,13 @@ If reproducing the results using cleaned datasets is the main interest, the firs
 
 ### dafishr package
 
-The `dafishr` package was created to download, wrangle, and analyse Mexican VMS data. We strongly encourage to read `dafishr` documentation as well as this document. Many function are from the package and should be installed as:
+The `dafishr` package was created to download, wrangle, and analyse Mexican VMS data. We strongly encourage to read `dafishr` documentation as well as this document. Many function are from the package and can be installed through CRAN with:
+
+```{r eval=FALSE}
+install.packages("dafishr")
+```
+
+In alternative, the development version can be installed using `devtools`:
 
 ```{r eval=FALSE}
 # install.packages("devtools")

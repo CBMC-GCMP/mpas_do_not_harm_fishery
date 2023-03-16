@@ -354,7 +354,7 @@ revispatial  |>
             alpha = .4
       ) +
       labs(x = "",
-           y = "Average Fishing Effort",
+           y = "Average Fishing Effort (Hrs/N)",
            title = "Fishing activity within MPA polygon") +
       geom_hline(yintercept = 0) +
       geom_vline(xintercept = as.Date("2017-11-01"),
@@ -384,7 +384,7 @@ revispatial  |>
       )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-13-1.png)
+![](README_files/figure-commonmark/unnamed-chunk-13-1.png)
 
 ### Figure 1B: Catch per Unit of Efforts
 
@@ -415,7 +415,7 @@ landings_stats <- landings |>
 We can now reproduce Figure 1B of the main text.
 
 ``` r
-vessels_landings_plot <- landings_stats  |>
+landings_stats  |>
       mutate(period = factor(ifelse(date < "2017-11-01", "Before", "After")),
              revi = factor(revi)) |>
       ggplot(aes(x = date, y = CPUE, group = period)) +
@@ -436,7 +436,7 @@ vessels_landings_plot <- landings_stats  |>
             method.args = list(family = Gamma(link = "log"))
       ) +
       labs(x = "",
-           y = "Average CPUE",
+           y = "Average CPUE (Ton/day)",
            col = "Historically active in MPA polygon",
            fill = "Historically active in MPA polygon") +
       facet_grid(revi ~ .) +
@@ -463,6 +463,8 @@ vessels_landings_plot <- landings_stats  |>
             axis.line.y = element_line(color = "black")
       )
 ```
+
+![](README_files/figure-commonmark/unnamed-chunk-15-1.png)
 
 ### Figure 1C: Area used by the fleet
 
@@ -547,7 +549,7 @@ areas_results %>%
       )
 ```
 
-![](README_files/figure-gfm/unnamed-chunk-17-1.png)
+![](README_files/figure-commonmark/unnamed-chunk-17-1.png)
 
 ### Figure 1D, E: Raster of before/after
 
